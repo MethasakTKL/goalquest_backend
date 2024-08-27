@@ -31,7 +31,9 @@ class Login(BaseModel):
 class ChangedPassword(BaseModel):
     current_password: str
     new_password: str
-
+    
+class DeleteUserRequest(BaseModel):
+    password: str
 
 class DBUser(BaseUser, SQLModel, table=True):
     __tablename__ = "users"
