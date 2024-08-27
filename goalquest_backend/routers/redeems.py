@@ -7,8 +7,8 @@ from goalquest_backend.models.rewards import Reward
 from goalquest_backend.models.reward_history import RewardHistory
 import datetime
 router = APIRouter(
-    prefix="/transactions",
-    tags=["transactions"]
+    prefix="/redeems",
+    tags=["Redeem rewards"]
 )
 
 @router.post("/")

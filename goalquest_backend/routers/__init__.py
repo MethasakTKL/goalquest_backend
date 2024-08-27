@@ -1,8 +1,8 @@
-from . import users,rewards,points,transactions
+from . import redeems, users,rewards,points
 
 
 def init_router(app):    
     app.include_router(users.router)
     app.include_router(points.router)
     app.include_router(rewards.router)
-    app.include_router(transactions.router)
+    app.include_router(redeems.router)

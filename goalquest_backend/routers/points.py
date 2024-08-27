@@ -7,7 +7,7 @@ from goalquest_backend.models.users import DBUser
 
 router = APIRouter(
     prefix="/points",
-    tags=["points"]
+    tags=["Points"]
 )
 
 @router.post("/", response_model=Point)

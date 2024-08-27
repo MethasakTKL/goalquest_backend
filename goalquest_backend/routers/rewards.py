@@ -7,7 +7,7 @@ from datetime import datetime
 
 router = APIRouter(
     prefix="/rewards",
-    tags=["rewards"]
+    tags=["Rewards"]
 )
 
 @router.post("/", response_model=Reward)

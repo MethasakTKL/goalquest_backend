@@ -6,7 +6,7 @@ from goalquest_backend.models.users import DBUser, RegisteredUser
 
 router = APIRouter(
     prefix="/users",
-    tags=["users"]
+    tags=["Users"]
 )
 
 @router.post("/")
