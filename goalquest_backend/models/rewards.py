@@ -15,5 +15,10 @@ class Reward(BaseReward, SQLModel, table=True):
     __tablename__ = "rewards"
     
     reward_id: int = Field(default=None, primary_key=True)
-    created_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
-    updated_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
+    created_at: datetime.datetime = pydantic.Field(
+        json_schema_extra=dict(example="2023-01-01T00:00:00.000000"), default=None
+    )
+
+    updated_at: datetime.datetime = pydantic.Field(
+        json_schema_extra=dict(example="2023-01-01T00:00:00.000000"), default=None
+    )
