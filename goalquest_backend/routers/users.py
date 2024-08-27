@@ -77,6 +77,9 @@ async def change_password(
 
     if not await user.verify_password(request.current_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    if await user.verify_password(request.new_password):
+        raise HTTPException(status_code=400, detail="New password must be different from the current password")
 
     await user.set_password(request.new_password)
     session.add(user)
