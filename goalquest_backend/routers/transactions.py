@@ -38,9 +38,22 @@ async def redeem_reward(point_id: int, reward_id: int, session: AsyncSession = D
         user_id=point_record.user_id,  # Assuming Point model has a user_id field
         reward_id=reward_id,
         points_spent=reward.points_required,
-        transaction_date=datetime.datetime.utcnow()  # Set current time
+        redeemed_date=datetime.datetime.utcnow()  # Set current time
     )
     session.add(reward_history)
     await session.commit()
 
     return {"message": "Reward redeemed successfully", "reward_id": reward_id, "points_spent": reward.points_required}
+
+@router.get("/history/{user_id}")
+async def get_reward_history(user_id: int, session: AsyncSession = Depends(get_session)):
+    # Query reward history for the specified user
+    reward_histories = await session.execute(
+        select(RewardHistory).where(RewardHistory.user_id == user_id)
+    )
+    reward_histories = reward_histories.scalars().all()
+
+    if not reward_histories:
+        raise HTTPException(status_code=404, detail="No reward history found for this user")
+
+    return reward_histories
