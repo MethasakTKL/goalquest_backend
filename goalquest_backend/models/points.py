@@ -7,7 +7,7 @@ import datetime
 
 class BasePoint(BaseModel):
     user_id: int = pydantic.Field(json_schema_extra=dict(example=0)) 
-    total_point: int = pydantic.Field(json_schema_extra=dict(example=500)) 
+    total_point: int = pydantic.Field(json_schema_extra=dict(example=0)) 
     last_earned_at: datetime.datetime = pydantic.Field(
         json_schema_extra=dict(example="2023-01-01T00:00:00.000000"), default=None
     )
