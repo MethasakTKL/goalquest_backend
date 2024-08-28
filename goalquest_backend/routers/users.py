@@ -40,19 +40,19 @@ def get_me(current_user: models.User = Depends(deps.get_current_user)) -> models
     return current_user
 
 # Read User
-@router.get("/{user_id}")
-async def get_user(
-    user_id: int,
-    session: Annotated[AsyncSession, Depends(models.get_session)],
-    current_user: models.User = Depends(deps.get_current_user),
-) -> models.User:
-    user = await session.get(models.DBUser, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="Not found this user",
-        )
-    return user
+# @router.get("/{user_id}")
+# async def get_user(
+#     user_id: int,
+#     session: Annotated[AsyncSession, Depends(models.get_session)],
+#     current_user: models.User = Depends(deps.get_current_user),
+# ) -> models.User:
+#     user = await session.get(models.DBUser, user_id)
+#     if not user:
+#         raise HTTPException(
+#             status_code=404,
+#             detail="Not found this user",
+#         )
+#     return user
 
 # Update User
 @router.put("/edit-profile/")
@@ -102,7 +102,7 @@ async def change_password(
     return {"message": "Password updated successfully"}
 
 # Delete User
-@router.delete("/delete/{user_id}")
+@router.delete("/delete/")
 async def delete_user(
     request: DeleteUserRequest,
     session: Annotated[AsyncSession, Depends(models.get_session)],

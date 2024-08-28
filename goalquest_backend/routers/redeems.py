@@ -1,3 +1,4 @@
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -7,18 +8,25 @@ from goalquest_backend.models.rewards import Reward
 from goalquest_backend.models.reward_history import RewardHistory
 import datetime
 
+from .. import deps
+from .. import models
+
 router = APIRouter(
     prefix="/redeems",
     tags=["Redeem rewards [Transaction]"]
 )
 
 @router.post("/")
-async def redeem_reward(point_id: int, reward_id: int, session: AsyncSession = Depends(get_session)):
-    # Check if point record exists
-    point_record = await session.execute(select(Point).where(Point.point_id == point_id))
+async def redeem_reward(
+    reward_id: int,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[models.User, Depends(deps.get_current_user)]
+):
+    # Check if point record exists for the current user
+    point_record = await session.execute(select(Point).where(Point.user_id == current_user.id))
     point_record = point_record.scalar_one_or_none()
     if not point_record:
-        raise HTTPException(status_code=404, detail="Point record not found")
+        raise HTTPException(status_code=404, detail="Point record not found for the user")
 
     # Check if the reward exists
     reward = await session.execute(select(Reward).where(Reward.reward_id == reward_id))
@@ -33,7 +41,7 @@ async def redeem_reward(point_id: int, reward_id: int, session: AsyncSession = D
     # Check if user has already redeemed this reward
     existing_redemption = await session.execute(
         select(RewardHistory)
-        .where(RewardHistory.user_id == point_record.user_id)
+        .where(RewardHistory.user_id == current_user.id)
         .where(RewardHistory.reward_id == reward_id)
     )
     existing_redemption = existing_redemption.scalar_one_or_none()
@@ -46,21 +54,24 @@ async def redeem_reward(point_id: int, reward_id: int, session: AsyncSession = D
 
     # Record reward redemption
     reward_history = RewardHistory(
-        user_id=point_record.user_id,  # Assuming Point model has a user_id field
+        user_id=current_user.id,  
         reward_id=reward_id,
         points_spent=reward.points_required,
-        redeemed_date=datetime.datetime.utcnow()  # Set current time
+        redeemed_date=datetime.datetime.utcnow()  
     )
     session.add(reward_history)
     await session.commit()
 
     return {"message": "Reward redeemed successfully", "reward_id": reward_id, "points_spent": reward.points_required}
 
-@router.get("/history/{user_id}")
-async def get_reward_history(user_id: int, session: AsyncSession = Depends(get_session)):
-    # Query reward history for the specified user
+@router.get("/history")
+async def get_reward_history(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[models.User, Depends(deps.get_current_user)]
+):
+    # Query reward history for the current user
     reward_histories = await session.execute(
-        select(RewardHistory).where(RewardHistory.user_id == user_id)
+        select(RewardHistory).where(RewardHistory.user_id == current_user.id)
     )
     reward_histories = reward_histories.scalars().all()
 

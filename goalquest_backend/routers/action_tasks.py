@@ -4,20 +4,28 @@ from sqlmodel import select
 from goalquest_backend.models import get_session
 from goalquest_backend.models.points import Point
 from goalquest_backend.models.tasks import Task
+from typing import Annotated
+
+from .. import deps
+from .. import models
 
 router = APIRouter(
-    prefix="/done_task",
-    tags=["Done Task  [Transaction]"]
+    prefix="/actions_task",
+    tags=["Actions Task  [Transaction]"]
 )
 
 @router.post("/")
-async def complete_task(user_id: int, task_id: int, session: AsyncSession = Depends(get_session)):
-    # Fetch point data for the user
-    point = await session.execute(select(Point).where(Point.user_id == user_id))
+async def complete_task(
+    task_id: int,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[models.User, Depends(deps.get_current_user)]
+):
+    # Fetch point data for the current user
+    point = await session.execute(select(Point).where(Point.user_id == current_user.id))
     point = point.scalar_one_or_none()
 
     if point is None:
-        raise HTTPException(status_code=404, detail="Points not found for the given user")
+        raise HTTPException(status_code=404, detail="Points not found for the current user")
 
     # Fetch task data
     task = await session.get(Task, task_id)
