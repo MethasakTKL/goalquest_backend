@@ -9,7 +9,7 @@ import datetime
 
 router = APIRouter(
     prefix="/redeems",
-    tags=["Redeem rewards"]
+    tags=["Redeem rewards [Transaction]"]
 )
 
 @router.post("/")
