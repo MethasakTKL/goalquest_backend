@@ -4,7 +4,10 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession as SQLAAsyn
 from sqlalchemy.orm import sessionmaker
 from typing import AsyncIterator
 
-
+from .goals import *
+from .points import *
+from .reward_history import *
+from .rewards import *
 from .users import *
 
 connect_args = {}
@@ -21,7 +24,7 @@ def init_db(settings):
 
 async def create_all():
     async with engine.begin() as conn:
-        # await conn.run_sync(SQLModel.metadata.drop_all)
+        await conn.run_sync(SQLModel.metadata.drop_all)
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
