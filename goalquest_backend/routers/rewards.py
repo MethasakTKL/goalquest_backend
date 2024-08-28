@@ -4,6 +4,7 @@ from sqlmodel import select
 from goalquest_backend.models import get_session
 from goalquest_backend.models.rewards import Reward, BaseReward
 from datetime import datetime
+from typing import List
 
 router = APIRouter(
     prefix="/rewards",
@@ -17,6 +18,12 @@ async def create_reward(reward: BaseReward, session: AsyncSession = Depends(get_
     await session.commit()
     await session.refresh(db_reward)
     return db_reward
+
+@router.get("/allreward", response_model=List[BaseReward])
+async def read_all_rewards(session: AsyncSession = Depends(get_session)):
+    rewards = await session.execute(select(Reward))
+    rewards_list = rewards.scalars().all()
+    return rewards_list
 
 @router.get("/{reward_id}", response_model=Reward)
 async def read_reward(reward_id: int, session: AsyncSession = Depends(get_session)):
