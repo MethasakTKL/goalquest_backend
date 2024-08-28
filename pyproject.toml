@@ -19,6 +19,7 @@ bcrypt = "^4.2.0"
 email-validator = "^2.2.0"
 greenlet = "^3.0.3"
 postgres = "^4.0"
+python-multipart = "^0.0.9"
 
 
 [build-system]

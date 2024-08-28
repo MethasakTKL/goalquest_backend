@@ -1,10 +1,9 @@
+from typing import List
 from pydantic import BaseModel, Field
 import pydantic
 from sqlmodel import SQLModel, Field
 from sqlalchemy import ForeignKey
-from typing import Optional
 import datetime
-
 
 class BaseGoal(BaseModel):
     user_id: int = pydantic.Field(json_schema_extra=dict(example=0)) 
@@ -15,7 +14,6 @@ class BaseGoal(BaseModel):
         json_schema_extra=dict(example="2023-01-01T00:00:00.000000"), default=None)
     end_date: datetime.datetime = pydantic.Field(
         json_schema_extra=dict(example="2023-01-01T00:00:00.000000"), default=None)
-    
 
 class Goal(BaseGoal, SQLModel, table=True):
     __tablename__ = "goals"
@@ -35,3 +33,4 @@ class Goal(BaseGoal, SQLModel, table=True):
         default_factory=datetime.datetime.utcnow,
         json_schema_extra=dict(example="2023-01-01T00:00:00.000000")
     )
+    
