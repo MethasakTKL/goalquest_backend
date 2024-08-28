@@ -7,3 +7,5 @@ def init_router(app):
     app.include_router(goals.router)
     app.include_router(tasks.router)
     app.include_router(done_tasks.router)
+    app.include_router(rewards.router)
+    app.include_router(redeems.router)
