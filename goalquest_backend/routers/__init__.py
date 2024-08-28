@@ -1,4 +1,4 @@
-from . import redeems, users,rewards,points,goals,tasks
+from . import redeems, users,rewards,points,goals,tasks,done_tasks
 
 
 def init_router(app):    
@@ -8,3 +8,4 @@ def init_router(app):
     app.include_router(redeems.router)
     app.include_router(goals.router)
     app.include_router(tasks.router)
+    app.include_router(done_tasks.router)
