@@ -6,6 +6,7 @@ from goalquest_backend.models.points import Point
 from goalquest_backend.models.rewards import Reward
 from goalquest_backend.models.reward_history import RewardHistory
 import datetime
+
 router = APIRouter(
     prefix="/redeems",
     tags=["Redeem rewards"]
@@ -28,6 +29,16 @@ async def redeem_reward(point_id: int, reward_id: int, session: AsyncSession = D
     # Check if user has enough points
     if point_record.total_point < reward.points_required:
         raise HTTPException(status_code=400, detail="Insufficient points for this reward")
+
+    # Check if user has already redeemed this reward
+    existing_redemption = await session.execute(
+        select(RewardHistory)
+        .where(RewardHistory.user_id == point_record.user_id)
+        .where(RewardHistory.reward_id == reward_id)
+    )
+    existing_redemption = existing_redemption.scalar_one_or_none()
+    if existing_redemption:
+        raise HTTPException(status_code=400, detail="Reward has already been redeemed by this user")
 
     # Update user points
     point_record.total_point -= reward.points_required
