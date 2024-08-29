@@ -26,19 +26,21 @@ router = APIRouter(
 #     await session.refresh(db_point)
 #     return db_point
 
-@router.get("/{point_id}", response_model=Point)
+@router.get("/", response_model=Point)
 async def read_point(
-    point_id: int, 
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[models.User, Depends(deps.get_current_user)],
     ) -> Point:
-    point = await session.get(Point, point_id)
+    
+    result = await session.execute(select(Point).where(Point.user_id == current_user.id))
+    point = result.scalars().first()
+
     if not point:
         raise HTTPException(status_code=404, detail="Point not found")
     if point.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to access this goal")
+        raise HTTPException(status_code=403, detail="Not authorized to access this point")
+    
     return point
-
 
 # @router.put("/{point_id}", response_model=Point)
 # async def update_point(point_id: int, point_update: BasePoint, session: AsyncSession = Depends(get_session)):

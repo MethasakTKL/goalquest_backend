@@ -6,7 +6,6 @@ from sqlalchemy import ForeignKey
 import datetime
 
 class BaseGoal(BaseModel):
-    user_id: int = pydantic.Field(json_schema_extra=dict(example=0)) 
     title: str = pydantic.Field(json_schema_extra=dict(example="Goal Title"))
     description: str = pydantic.Field(json_schema_extra=dict(example="Description of the goal"))
     progress_percentage: int = pydantic.Field(json_schema_extra=dict(example=0))
