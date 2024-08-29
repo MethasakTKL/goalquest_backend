@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from goalquest_backend.models import get_session
 from goalquest_backend.models.users import DBUser, RegisteredUser,ChangedPassword,DeleteUserRequest
+from goalquest_backend.models.points import Point, BasePoint
 from pydantic import BaseModel
+import datetime
 
 
 from .. import deps
@@ -18,7 +20,7 @@ router = APIRouter(
 # Create User
 @router.post("/")
 async def create_user(
-    user: RegisteredUser, 
+    user: RegisteredUser,
     session: AsyncSession = Depends(get_session)
     )->  models.User:
     query = select(DBUser).where(DBUser.username == user.username)
@@ -33,6 +35,13 @@ async def create_user(
     session.add(db_user)
     await session.commit()
     await session.refresh(db_user)
+
+    # Create a Point for user
+    initial_points = Point(user_id=db_user.id, total_point=0, last_earned_at=datetime.datetime.utcnow())
+    session.add(initial_points)
+
+    await session.commit()  # Commit the Point to generate the point_id
+    await session.refresh(initial_points)  # Refresh to get the generated point_id
     return db_user
 
 @router.get("/me")

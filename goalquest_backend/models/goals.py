@@ -20,7 +20,7 @@ class Goal(BaseGoal, SQLModel, table=True):
     
     goal_id: int = Field(default=None, primary_key=True)
     user_id: int = Field(default=None, foreign_key="users.id")
-    progress_percentage: int
+    progress_percentage: int = Field(default=0)
     start_date: datetime.datetime = pydantic.Field(
         json_schema_extra=dict(example="2023-01-01T00:00:00.000000"), default=None)
     end_date: datetime.datetime = pydantic.Field(

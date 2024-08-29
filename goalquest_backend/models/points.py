@@ -20,5 +20,6 @@ class Point(BasePoint, SQLModel, table=True):
     user_id: int = Field(default=None, foreign_key="users.id")
     total_point: int
     last_earned_at: datetime.datetime = pydantic.Field(
-        json_schema_extra=dict(example="2023-01-01T00:00:00.000000"), default=None
+        default_factory=datetime.datetime.utcnow,
+        json_schema_extra=dict(example="2023-01-01T00:00:00.000000")
     )
