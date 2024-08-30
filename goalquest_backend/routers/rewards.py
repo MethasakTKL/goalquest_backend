@@ -68,3 +68,4 @@ async def delete_reward(reward_id: int, session: AsyncSession = Depends(get_sess
     await session.delete(reward)
     await session.commit()
     return {"detail": "Reward deleted"}
+

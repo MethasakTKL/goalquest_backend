@@ -127,3 +127,27 @@ async def example_goal_user1(
     await session.commit()
     await session.refresh(goal)
     return goal
+
+@pytest_asyncio.fixture(name="example_reward1")
+async def example_reward1_fixture(session: models.AsyncSession) -> models.Reward:
+    reward = models.Reward(
+        title="Test reward",
+        description="Test reward description",
+        points_required=100
+    )
+    session.add(reward)
+    await session.commit()
+    await session.refresh(reward)  
+    return reward
+
+@pytest_asyncio.fixture(name="example_reward2")
+async def example_reward2_fixture(session: models.AsyncSession) -> models.Reward:
+    reward = models.Reward(
+        title="Another Test reward",
+        description="Another Test reward description",
+        points_required=200
+    )
+    session.add(reward)
+    await session.commit()
+    await session.refresh(reward)  
+    return reward
