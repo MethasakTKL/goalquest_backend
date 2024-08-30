@@ -128,6 +128,37 @@ async def example_goal_user1(
     await session.refresh(goal)
     return goal
 
+@pytest_asyncio.fixture(name = "task_user1")
+async def example_task_user1(
+    session: models.AsyncSession, user1: models.DBUser, goal_user1: models.Goal
+) -> models.Task:
+    title = "Task 1"
+
+    query = await session.exec(
+        models.select(models.Task)
+        .where(models.Task.title == title,
+               models.Task.goal_id == goal_user1.goal_id)
+        .limit(1)
+    )
+
+    task =  query.one_or_none()
+    if task:
+        return task
+    
+    task = models.Task(
+        title = title,
+        description = "Description 1",
+        is_completed = False,
+        task_point= 100,
+        due_date = datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
+        goal_id = goal_user1.goal_id,
+    )
+
+    session.add(task)
+    await session.commit()
+    await session.refresh(task)
+    return task
+
 @pytest_asyncio.fixture(name="example_reward1")
 async def example_reward1_fixture(session: models.AsyncSession) -> models.Reward:
     reward = models.Reward(

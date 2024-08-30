@@ -74,7 +74,7 @@ async def test_read_goals(
     assert response.status_code == 200
     assert "goal_id" in data
     assert data["goal_id"] > 0
-    
+
 @pytest.mark.asyncio
 async def test_no_permission_update_goals(
     client: AsyncClient,
