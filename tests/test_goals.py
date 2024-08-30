@@ -18,3 +18,4 @@ async def test_no_permission_create_goal(
     response = await client.post("/goals/", json=payload)
 
     assert response.status_code == 401
+
