@@ -28,6 +28,7 @@ async def create_goal(
     db_goal = Goal(
         title=goal.title,
         description=goal.description,
+        progress_percentage= goal.progress_percentage,
         start_date=goal.start_date,
         end_date=goal.end_date,
         user_id=current_user.id,  # Adding user_id explicitly
@@ -77,6 +78,7 @@ async def update_goal(
 
     goal.title = goal_update.title
     goal.description = goal_update.description
+    goal.progress_percentage = goal_update.progress_percentage
     goal.start_date = goal_update.start_date
     goal.end_date = goal_update.end_date
     goal.updated_at = datetime.datetime.utcnow()
