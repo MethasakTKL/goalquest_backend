@@ -144,7 +144,7 @@ async def test_no_permission_delete_tasks(
     assert response.status_code == 401
 
 @pytest.mark.asyncio
-async def test_delete_goals(
+async def test_delete_tasks(
     client: AsyncClient,
     token_user1: models.Token,
     task_user1: models.Task,

@@ -1,7 +1,6 @@
 from httpx import AsyncClient
 from goalquest_backend import models
 from goalquest_backend.models import Point, Task
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import pytest
 
@@ -13,10 +12,8 @@ async def test_complete_task(
     example_point_user1: Point,
     session: AsyncSession
 ):
-    # Store the initial point value
     initial_points = example_point_user1.total_point
 
-    # Perform the task completion request with task_id as a query parameter
     response = await client.post(
         "/actions_task/",
         params={"task_id": task_user1.task_id},
