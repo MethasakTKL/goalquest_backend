@@ -16,7 +16,7 @@ router = APIRouter(
     tags=["Redeem rewards [Transaction]"]
 )
 
-@router.post("/{reward_id}")
+@router.post("/")
 async def redeem_reward(
     reward_id: int,
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -79,4 +79,6 @@ async def get_reward_history(
         raise HTTPException(status_code=404, detail="No reward history found for this user")
 
     return reward_histories
+
+
 

@@ -168,7 +168,7 @@ async def example_point_user1(
         models.select(models.Point).where(models.Point.user_id == user1.id).limit(1)
     )
     
-    point = query.one_or_none()
+    point = query.scalar_one_or_none()
     if point:
         return point
     
@@ -183,30 +183,7 @@ async def example_point_user1(
     await session.refresh(point)
     return point
 
-@pytest_asyncio.fixture(name="example_reward_history_user1")
-async def fixture_example_reward_history_user1(session: AsyncSession) -> models.RewardHistory:
-    user = models.User(
-        id=1, 
-        username='test_user', 
-        email='test@example.com', 
-        password_hash='hashed_password'
-    )
-    reward = models.Reward(reward_id=1, points_required=100, description="Test Reward")
 
-    session.add(user)
-    session.add(reward)
-    await session.commit()
-
-    reward_history = models.RewardHistory(
-        user_id=user.id,
-        reward_id=reward.reward_id,
-        points_spent=reward.points_required,
-        redeemed_date=datetime.datetime.utcnow()
-    )
-    session.add(reward_history)
-    await session.commit()
-
-    return reward_history
 
 @pytest_asyncio.fixture(name="example_reward1")
 async def example_reward1_fixture(session: models.AsyncSession) -> models.Reward:
@@ -226,6 +203,18 @@ async def example_reward2_fixture(session: models.AsyncSession) -> models.Reward
         title="Another Test reward",
         description="Another Test reward description",
         points_required=200
+    )
+    session.add(reward)
+    await session.commit()
+    await session.refresh(reward)  
+    return reward
+
+@pytest_asyncio.fixture(name="example_reward3")
+async def example_reward3_fixture(session: models.AsyncSession) -> models.Reward:
+    reward = models.Reward(
+        title="Another Test reward",
+        description="Another Test reward description",
+        points_required=20000
     )
     session.add(reward)
     await session.commit()
