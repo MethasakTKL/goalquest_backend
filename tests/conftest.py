@@ -150,7 +150,7 @@ async def example_task_user1(
         title = title,
         description = "Description 1",
         is_completed = False,
-        task_point= 100,
+        task_point= 500,
         due_date = datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
         goal_id = goal_user1.goal_id,
     )

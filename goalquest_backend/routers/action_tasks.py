@@ -39,7 +39,14 @@ async def complete_task(
 
     # Mark the task as completed and add points
     task.is_completed = True
-    point.total_point += task.task_point
+    session.add(task)
     await session.commit()
+    await session.refresh(task)
+
+    #Update the total points for the user
+    point.total_point = point.total_point + task.task_point
+    session.add(point)
+    await session.commit()
+    await session.refresh(point)
 
     return {"message": "Task completed and points added", "points_received": task.task_point}
