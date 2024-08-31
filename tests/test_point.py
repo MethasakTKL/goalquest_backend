@@ -29,3 +29,4 @@ async def test_permissioned_read_points(
     assert point_data["user_id"] == token_user1.user_id
     assert "total_point" in point_data
     assert "last_earned_at" in point_data
+    assert point_data["total_point"] == 10000

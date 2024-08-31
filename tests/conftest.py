@@ -173,7 +173,7 @@ async def example_point_user1(
     
     point = models.Point(
         user_id=user1.id,
-        total_point=100,
+        total_point=10000,
         last_earned_at=datetime.datetime.utcnow()
     )
 

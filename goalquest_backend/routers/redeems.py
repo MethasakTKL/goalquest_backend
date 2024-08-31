@@ -16,7 +16,7 @@ router = APIRouter(
     tags=["Redeem rewards [Transaction]"]
 )
 
-@router.post("/")
+@router.post("/{reward_id}")
 async def redeem_reward(
     reward_id: int,
     session: Annotated[AsyncSession, Depends(get_session)],
