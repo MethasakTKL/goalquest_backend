@@ -8,6 +8,7 @@ from pydantic_settings import SettingsConfigDict
 from goalquest_backend import config, models, main, security
 import pytest
 import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 import sys
@@ -182,6 +183,30 @@ async def example_point_user1(
     await session.refresh(point)
     return point
 
+@pytest_asyncio.fixture(name="example_reward_history_user1")
+async def fixture_example_reward_history_user1(session: AsyncSession) -> models.RewardHistory:
+    user = models.User(
+        id=1, 
+        username='test_user', 
+        email='test@example.com', 
+        password_hash='hashed_password'
+    )
+    reward = models.Reward(reward_id=1, points_required=100, description="Test Reward")
+
+    session.add(user)
+    session.add(reward)
+    await session.commit()
+
+    reward_history = models.RewardHistory(
+        user_id=user.id,
+        reward_id=reward.reward_id,
+        points_spent=reward.points_required,
+        redeemed_date=datetime.datetime.utcnow()
+    )
+    session.add(reward_history)
+    await session.commit()
+
+    return reward_history
 
 @pytest_asyncio.fixture(name="example_reward1")
 async def example_reward1_fixture(session: models.AsyncSession) -> models.Reward:

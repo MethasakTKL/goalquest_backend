@@ -79,3 +79,4 @@ async def get_reward_history(
         raise HTTPException(status_code=404, detail="No reward history found for this user")
 
     return reward_histories
+
