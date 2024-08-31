@@ -159,6 +159,30 @@ async def example_task_user1(
     await session.refresh(task)
     return task
 
+@pytest_asyncio.fixture(name="example_point_user1")
+async def example_point_user1(
+    session: models.AsyncSession, user1: models.DBUser
+) -> models.Point:
+    query = await session.execute(
+        models.select(models.Point).where(models.Point.user_id == user1.id).limit(1)
+    )
+    
+    point = query.one_or_none()
+    if point:
+        return point
+    
+    point = models.Point(
+        user_id=user1.id,
+        total_point=100,
+        last_earned_at=datetime.datetime.utcnow()
+    )
+
+    session.add(point)
+    await session.commit()
+    await session.refresh(point)
+    return point
+
+
 @pytest_asyncio.fixture(name="example_reward1")
 async def example_reward1_fixture(session: models.AsyncSession) -> models.Reward:
     reward = models.Reward(
