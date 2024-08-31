@@ -25,17 +25,17 @@ async def test_complete_task(
     assert data["message"] == "Task completed and points added"
     assert data["points_received"] == task_user1.task_point
 
-    # Fetch the updated point record for the user
+    # อัปเดตข้อมูลของ Point ในฐานข้อมูล
     await session.refresh(example_point_user1)
 
-    # Calculate the expected new point total
+    # คำนวณจำนวน point ที่จะได้รับจากการทำ task
     expected_points = initial_points + task_user1.task_point
 
-    # Check if the calculated points match the expected points
+    # ตรวจสอบว่า point ถูกเพิ่มขึ้นมาเป็นจำนวนที่ถูกต้อง
     assert example_point_user1.total_point == expected_points, \
         f"Expected points: {expected_points}, but got: {example_point_user1.total_point}"
 
-    # Verify that the task is marked as completed
+    # ตรวจสอบว่า task ถูกทำเสร็จแล้ว
     await session.refresh(task_user1)
     assert task_user1.is_completed, f"Task with ID {task_user1.task_id} should be marked as completed"
 
