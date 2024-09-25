@@ -44,7 +44,7 @@ async def create_user(
     await session.refresh(initial_points)  # Refresh to get the generated point_id
     return db_user
 
-@router.get("/me")
+@router.get("/me/")
 def get_me(current_user: models.User = Depends(deps.get_current_user)) -> models.User:
     return current_user
 
