@@ -41,6 +41,24 @@ async def read_point(
         raise HTTPException(status_code=403, detail="Not authorized to access this point")
     
     return point
+from typing import List
+
+from typing import List
+
+@router.get("/all", response_model=List[Point])
+async def read_all_points(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: Annotated[models.User, Depends(deps.get_current_user)],
+) -> List[Point]:
+    # ดึง point ของผู้ใช้งานทั้งหมดจากฐานข้อมูล
+    result = await session.execute(select(Point))
+    points = result.scalars().all()
+
+    if not points:
+        raise HTTPException(status_code=404, detail="No points found")
+
+    return points
+
 
 # @router.put("/{point_id}", response_model=Point)
 # async def update_point(point_id: int, point_update: BasePoint, session: AsyncSession = Depends(get_session)):
