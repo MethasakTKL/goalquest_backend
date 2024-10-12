@@ -48,6 +48,9 @@ class ChangedPassword(BaseModel):
 class DeleteUserRequest(BaseModel):
     password: str
 
+class UserWithId(BaseUser):
+    id: int 
+
 class DBUser(BaseUser, SQLModel, table=True):
     __tablename__ = "users"
     id: int | None = Field(default=None, primary_key=True)

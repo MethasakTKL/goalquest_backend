@@ -49,10 +49,10 @@ def get_me(current_user: models.User = Depends(deps.get_current_user)) -> models
     return current_user
 
 
-@router.get("/get-allUsers/", response_model=List[models.BaseUser])
+@router.get("/get-allUsers/", response_model=List[models.UserWithId])
 async def get_all_users(
     session: Annotated[AsyncSession, Depends(models.get_session)],
-) -> List[models.BaseModel]:
+) -> List[models.UserWithId]:
     users = await session.execute(select(DBUser))
     user_list = users.scalars().all()
     return user_list
