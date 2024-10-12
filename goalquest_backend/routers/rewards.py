@@ -22,13 +22,18 @@ async def create_reward(reward: BaseReward, session: AsyncSession = Depends(get_
     await session.refresh(db_reward)
     return db_reward
 
-@router.get("/allreward", response_model=List[BaseReward])
+@router.get("/allreward", response_model=List[Reward])
 async def read_all_rewards(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[models.DBUser, Depends(deps.get_current_user)]
-) -> List[BaseReward]:
+) -> List[Reward]:
     rewards = await session.execute(select(Reward))
     rewards_list = rewards.scalars().all()
+
+    if not rewards_list:
+        raise HTTPException(status_code=404, detail="No rewards found")
+
+    # กำหนด exclude ฟิลด์ created_at และ updated_at
     return rewards_list
 
 @router.get("/{reward_id}", response_model=Reward)

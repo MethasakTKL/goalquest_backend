@@ -1,4 +1,5 @@
 from typing import Annotated
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -15,13 +16,16 @@ router = APIRouter(
     prefix="/redeems",
     tags=["Redeem rewards [Transaction]"]
 )
+class RedeemRequest(BaseModel):
+    reward_id: int
 
 @router.post("/")
 async def redeem_reward(
-    reward_id: int,
+    request: RedeemRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
-    current_user: Annotated[models.User, Depends(deps.get_current_user)]
+    current_user: Annotated[models.User, Depends(deps.get_current_user)],
 ):
+    reward_id = request.reward_id
     # Check if point record exists for the current user
     point_record = await session.execute(select(Point).where(Point.user_id == current_user.id))
     point_record = point_record.scalar_one_or_none()
@@ -61,6 +65,7 @@ async def redeem_reward(
     )
     session.add(reward_history)
     await session.commit()
+    await session.refresh(reward_history)
 
     return {"message": "Reward redeemed successfully", "reward_id": reward_id, "points_spent": reward.points_required}
 
