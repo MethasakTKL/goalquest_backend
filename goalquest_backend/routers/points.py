@@ -78,7 +78,7 @@ async def read_all_points(
 # async def delete_point(point_id: int, session: AsyncSession = Depends(get_session)):
 #     point = await session.get(Point, point_id)
 #     if not point:
-#         raise HTTPException(status_code=404, detail="Point not found")
+#         raise HTTPException(status_code=404, detail="Point not found")gi
 
 #     await session.delete(point)
 #     await session.commit()

@@ -31,6 +31,7 @@ async def create_goal(
         progress_percentage= goal.progress_percentage,
         start_date=goal.start_date,
         end_date=goal.end_date,
+        is_complete=goal.is_complete,
         user_id=current_user.id,  # Adding user_id explicitly
         created_at=datetime.datetime.utcnow(),  # Add default values if needed
         updated_at=datetime.datetime.utcnow()
@@ -81,6 +82,7 @@ async def update_goal(
     goal.progress_percentage = goal_update.progress_percentage
     goal.start_date = goal_update.start_date
     goal.end_date = goal_update.end_date
+    goal.is_complete = goal_update.is_complete 
     goal.updated_at = datetime.datetime.utcnow()
 
     session.add(goal)
