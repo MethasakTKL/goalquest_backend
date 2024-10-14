@@ -1,3 +1,3 @@
 #!/bin/bash
 
-uvicorn "goalquest_backend.main:create_app" --factory --reload
+uvicorn "goalquest_backend.main:create_app" --factory --reload --host 0.0.0.0 --port 8000
