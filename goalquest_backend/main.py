@@ -1,28 +1,29 @@
+from gevent import monkey
+
+monkey.patch_all()
+
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware  # ตัวอย่างการนำเข้า CORS middleware
+from contextlib import asynccontextmanager
 
 from . import config
 from . import models
 from . import routers
 
-def create_app():
-    settings = config.get_settings()
-    app = FastAPI()
 
-    # เพิ่ม middleware ที่ต้องการ
-    app.add_middleware(
-        CORSMiddleware,  # ตัวอย่าง middleware CORS
-        allow_origins=["*"],  # ระบุที่มาที่อนุญาต เช่น ["https://example.com"]
-        allow_credentials=True,
-        allow_methods=["*"],  # ระบุวิธีที่อนุญาต เช่น ["GET", "POST"]
-        allow_headers=["*"],  # ระบุ headers ที่อนุญาต เช่น ["Content-Type"]
-    )
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    await models.session_close()
+
+
+
+def create_app(settings=None):
+    if not settings:
+        settings = config.get_settings()
+
+    app = FastAPI(lifespan=lifespan)
 
     models.init_db(settings)
+
     routers.init_router(app)
-
-    @app.on_event("startup")
-    async def on_startup():
-        await models.create_all()
-
     return app
