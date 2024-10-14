@@ -4,6 +4,7 @@ from sqlmodel import select
 from goalquest_backend.models import get_session
 from goalquest_backend.models.goals import BaseGoal, Goal
 from goalquest_backend.models.users import DBUser
+from goalquest_backend.models.tasks import Task
 import datetime
 from typing import Annotated, List
 
@@ -46,9 +47,30 @@ async def read_all_goals(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[models.User, Depends(deps.get_current_user)],
 ) -> List[Goal]:
-    # Fetch goals for the current user or all goals if needed
+    # ดึง goal ที่เกี่ยวข้องกับผู้ใช้ปัจจุบัน
     goals = await session.execute(select(Goal).where(Goal.user_id == current_user.id))
     goal_list = goals.scalars().all()
+
+    # สำหรับ goal แต่ละอัน ให้ทำการคำนวณว่ามี task เสร็จครบหรือยัง
+    for goal in goal_list:
+        # ดึง task ที่เกี่ยวข้องกับ goal นั้น
+        tasks = await session.execute(select(Task).where(Task.goal_id == goal.goal_id))
+        task_list = tasks.scalars().all()
+
+        # นับ task ทั้งหมด และ task ที่เสร็จแล้ว
+        total_tasks = len(task_list)
+        completed_tasks = len([task for task in task_list if task.is_completed])
+
+        # ตรวจสอบสถานะ goal ว่าเสร็จสมบูรณ์หรือไม่
+        if total_tasks > 0 and completed_tasks == total_tasks:
+            goal.is_complete = True
+        else:
+            goal.is_complete = False
+        # อัพเดต goal ในฐานข้อมูล
+        session.add(goal)
+    # commit เพื่ออัพเดตสถานะ goal
+    await session.commit()
+
     return goal_list
 
 @router.get("/{goal_id}", response_model=Goal)
