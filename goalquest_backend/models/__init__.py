@@ -10,6 +10,7 @@ from .reward_history import *
 from .rewards import *
 from .tasks import *
 from .users import *
+from .earn_history import *
 
 connect_args = {}
 engine = None

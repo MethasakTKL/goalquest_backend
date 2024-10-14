@@ -7,6 +7,7 @@ from . import goals
 from . import tasks
 from . import action_tasks
 from . import authentication
+from . import earn_history
 
 
 def init_router(app):    
@@ -25,3 +26,4 @@ def init_router(app):
 
     app.include_router(rewards.router)
     app.include_router(redeems.router)
+    app.include_router(earn_history.router)

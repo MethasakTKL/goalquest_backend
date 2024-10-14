@@ -4,6 +4,7 @@ from sqlmodel import select
 from goalquest_backend.models import get_session
 from goalquest_backend.models.points import Point
 from goalquest_backend.models.tasks import Task
+from goalquest_backend.models.earn_history import EarnHistory
 from typing import Annotated
 from datetime import datetime, timedelta
 
@@ -54,6 +55,15 @@ async def complete_task(
         session.add(point)
         await session.commit()
         await session.refresh(point)
+
+        earn_history = EarnHistory(
+            user_id = current_user.id,
+            task_id = task.task_id,
+            points_earned =  task.task_point,
+            earn_date = datetime.now(),
+        )
+        session.add(earn_history)
+        await session.commit()
 
         return {
             "message": "Task completed and points added", 
