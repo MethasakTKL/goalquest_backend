@@ -5,6 +5,7 @@ from goalquest_backend.models import get_session
 from goalquest_backend.models.points import Point
 from goalquest_backend.models.tasks import Task
 from goalquest_backend.models.earn_history import EarnHistory
+from goalquest_backend.models.goals import Goal
 from typing import Annotated
 from datetime import datetime, timedelta
 
@@ -132,3 +133,57 @@ async def click_task(
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+        
+@router.post("/give_up_task/")
+async def give_up_task(
+        task_id: int,
+        session: Annotated[AsyncSession, Depends(get_session)],
+        current_user: Annotated[models.User, Depends(deps.get_current_user)]
+):
+    try:
+        # Fetch the task from the database
+        task = await session.get(Task, task_id)
+        if task is None:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+        # Fetch the associated goal to check user ownership
+        goal = await session.get(Goal, task.goal_id)
+        if goal is None:
+            raise HTTPException(status_code=404, detail="Goal not found")
+
+        # ตรวจสอบว่า goal นี้เป็นของผู้ใช้คนนี้หรือไม่
+        if goal.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to give up this task")
+
+        # Set คะแนน task ให้เหลือ 30 และทำให้ task เสร็จสิ้นจากการยอมแพ้
+        task.task_point = 30
+        task.is_completed = True
+
+        # Fetch user's points
+        points = await session.execute(select(Point).where(Point.user_id == current_user.id))
+        points = points.scalar_one_or_none()
+
+        if points is None:
+            raise HTTPException(status_code=404, detail="User points not found")
+
+        # หักคะแนนออก 30 คะแนนจากคะแนนรวม
+        points.total_point -= 30
+
+        # ไม่ให้คะแนนติดลบ
+        if points.total_point < 0:
+            points.total_point = 0
+
+        # Save the task and user's points
+        session.add(task)
+        session.add(points)
+        await session.commit()
+        await session.refresh(task)
+
+        return {
+            "message": "You gave up the task",
+            "task": task,
+            "remaining_points": points.total_point
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
