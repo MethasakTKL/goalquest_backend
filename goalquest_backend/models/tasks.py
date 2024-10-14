@@ -29,7 +29,7 @@ class Task(BaseTask, SQLModel, table=True):
     __tablename__ = "tasks"
 
     task_id: int = Field(default=None, primary_key=True)
-    goal_id: int = Field(default=None, foreign_key="goals.goal_id")
+    goal_id: int = Field(default=None, foreign_key="goals.goal_id", ondelete="CASCADE")
     task_type: str = Field(nullable=False)
     created_at: datetime.datetime = pydantic.Field(
         default_factory=datetime.datetime.utcnow,  

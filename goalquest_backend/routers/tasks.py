@@ -5,6 +5,7 @@ from goalquest_backend.models import get_session
 from goalquest_backend.models.tasks import BaseTask, Task , TaskwithId
 from goalquest_backend.models.goals import Goal
 from goalquest_backend.models.users import DBUser 
+from typing import Optional
 from datetime import datetime
 from typing import Annotated, List
 
@@ -15,12 +16,44 @@ router = APIRouter(
     tags=["Tasks"]
 )
 
+def calculate_task_points(task_type: str, task_duration: Optional[int]) -> int:
+    if task_type == 'FocusTimer':
+        if task_duration is None:
+            return 0
+        if task_duration >= 150:
+            return 800
+        elif task_duration >= 120:
+            return 700
+        elif task_duration >= 100:
+            return 600
+        elif task_duration >= 90:
+            return 520
+        elif task_duration >= 60:
+            return 430
+        elif task_duration >= 45:
+            return 350
+        elif task_duration >= 30:
+            return 270
+        elif task_duration >= 15:
+            return 190
+        elif task_duration >= 10:
+            return 130
+        elif task_duration >= 5:
+            return 60
+        elif task_duration >= 1:
+            return 10
+        else:
+            return 0
+    return 0
+
 @router.post("/", response_model=Task)
 async def create_task(
     task: BaseTask,
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: Annotated[DBUser, Depends(deps.get_current_user)]
 ) -> Task:
+    
+    
     # ตรวจสอบว่า goal มีอยู่และเป็นของผู้ใช้ปัจจุบัน
     goal = await session.get(Goal, task.goal_id)
     if not goal:
@@ -34,11 +67,13 @@ async def create_task(
     elif task.task_type == 'TodoQuest':
         task.task_duration = None  # ถ้า task_type เป็น TodoQuest, task_duration ต้องเป็น null
     
-    # แปลงเวลาทั้งหมดให้เป็น offset-naive (ไม่มี timezone)
-    if task.start_date:
-        task.start_date = task.start_date.replace(tzinfo=None)
-    if task.due_date:
-        task.due_date = task.due_date.replace(tzinfo=None)
+     # ตรวจสอบ task_type และตั้งค่า repeat_day หรือ task_duration ตามเงื่อนไข
+    if task.task_type == 'FocusTimer':
+        task.repeat_day = None  # ถ้า task_type เป็น FocusTimer, repeat_day ต้องเป็น null
+        task.task_point = calculate_task_points(task.task_type, task.task_duration)  # คำนวณคะแนน
+    elif task.task_type == 'TodoQuest':
+        task.task_duration = None  # ถ้า task_type เป็น TodoQuest, task_duration ต้องเป็น null
+        task.task_point = 0  # ตั้งค่า task_point สำหรับ TodoQuest เป็น 0
 
     task.is_completed = False
 
@@ -54,6 +89,7 @@ async def create_task(
     await session.commit()
     await session.refresh(db_task)
     return db_task
+
 
 @router.get("/all_task", response_model=List[TaskwithId])
 async def read_all_tasks(
