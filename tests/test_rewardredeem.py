@@ -93,4 +93,3 @@ async def test_insufficient_points_redemption(
     updated_points = example_point_user1.total_point
 
     assert updated_points == initial_points, f"Expected points to remain {initial_points}, but got {updated_points}"
-

@@ -9,7 +9,7 @@ from goalquest_backend import config, models, main, security
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from datetime import datetime, timedelta, timezone
 
 import sys
 
@@ -21,7 +21,7 @@ SettingsTesting.model_config = SettingsConfigDict(
     env_file=".testing.env", validate_assignment=True, extra="allow"
 )
 
-@pytest.fixture(name = "app", scope = "session")
+@pytest.fixture(name="app", scope="session")
 def app_fixture():
     settings = SettingsTesting()
     path = pathlib.Path("test-data")
@@ -37,132 +37,130 @@ def client_fixture(app: FastAPI) -> AsyncClient:
     return AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost")
 
 @pytest_asyncio.fixture(name="session", scope="session")
-async def get_session() -> models.AsyncIterator[models.AsyncSession]:
+async def get_session() -> models.AsyncIterator[AsyncSession]:
     settings = SettingsTesting()
     models.init_db(settings)
 
     async_session = models.sessionmaker(
-        models.engine, class_=models.AsyncSession, expire_on_commit=False
+        models.engine, class_=AsyncSession, expire_on_commit=False
     )
     async with async_session() as session:
-        yield session
+        try:
+            yield session
+        except Exception as e:
+            await session.rollback()
+            raise e
 
-@pytest_asyncio.fixture(name = "user1")
-async def example_user1(session: models.AsyncSession) -> models.DBUser:
+@pytest_asyncio.fixture(name="user1")
+async def example_user1(session: AsyncSession) -> models.DBUser:
     password = "123456"
     username = "user1"
 
-    query = await session.exec(
-        models.select(models.DBUser).where(models.DBUser.username == username).limit(1)
+    # Create the user in the database
+    new_user = models.DBUser(
+        username=username,
+        email="user1@example.com",
+        first_name="First",
+        last_name="Last",
+        password=password,
+        register_date=datetime.utcnow(),  # Make sure this is correct
+        updated_date=datetime.utcnow()     # Make sure this is correct
     )
-
-    user = query.one_or_none()
-    if user:
-        return user
     
-    user = models.DBUser(
-        username = username,
-        password = password,
-        email = "user1@gmail.com",
-        first_name = "Firstname1",
-        last_name = "Lastname1",
-        last_login_date = datetime.datetime.now(tz=datetime.timezone.utc),
-    )
-
-    await user.set_password(password)
-    session.add(user)
+    session.add(new_user)
     await session.commit()
-    await session.refresh(user)
-    return user
+    
+    return new_user
 
-@pytest_asyncio.fixture(name = "token_user1")
+
+
+
+@pytest_asyncio.fixture(name="token_user1")
 async def oauth_token_user1(user1: models.DBUser) -> models.Token:
     settings = SettingsTesting()
-    access_token_expires = datetime.timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    # Check for last_login_date
+    issued_at = user1.last_login_date if user1.last_login_date else datetime.now(timezone.utc)
     return models.Token(
-        access_token= security.create_access_token(
+        access_token=security.create_access_token(
             data={"sub": user1.id},
-            expires_delta = access_token_expires
+            expires_delta=access_token_expires
         ),
-        refresh_token= security.create_refresh_token(
-            data = {"sub": user1.id},
-            expires_delta = access_token_expires,
+        refresh_token=security.create_refresh_token(
+            data={"sub": user1.id},
+            expires_delta=access_token_expires,
         ),
-        token_type = "Bearer",
+        token_type="Bearer",
         scope="",
-        expires_in = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
-        expires_at = datetime.datetime.now() + access_token_expires,
-        issued_at = user1.last_login_date,
-        user_id = user1.id
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        expires_at=datetime.now(datetime.timezone.utc) + access_token_expires,  # ใช้ timezone-aware
+        issued_at=issued_at,  # ใช้ค่า issued_at ที่ตั้งไว้
+        user_id=user1.id
     )
 
-@pytest_asyncio.fixture(name = "goal_user1")
-async def example_goal_user1(
-    session: models.AsyncSession, user1: models.DBUser 
-) -> models.Goal:
+@pytest_asyncio.fixture(name="goal_user1")
+async def example_goal_user1(session: AsyncSession, user1: models.DBUser) -> models.Goal:
     title = "Goal 1"
 
-    query = await session.exec(
+    query = await session.execute(
         models.select(models.Goal)
-        .where(models.Goal.title == title, 
-               models.Goal.user_id == user1.id)
+        .where(models.Goal.title == title, models.Goal.user_id == user1.id)
         .limit(1)
     )
 
-    goal = query.one_or_none()
+    goal = query.scalar_one_or_none()
     if goal:
         return goal
     
     goal = models.Goal(
-        title = title,
-        description = "Description 1",
-        progress_percentage= 0,
-        start_date = datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
-        end_date = datetime.datetime(2023, 12, 31, tzinfo=datetime.timezone.utc),
-        user_id = user1.id,
+        title=title,
+        description="First test goal",
+        user_id=user1.id,
+        start_date=datetime.now(tz=datetime.timezone.utc),
+        due_date=datetime.now(tz=datetime.timezone.utc) + timedelta(days=30),  # แก้ไข
     )
-
-    session.add(goal)
+    
+    async with session.begin():  # ใช้ context manager
+        session.add(goal)
     await session.commit()
     await session.refresh(goal)
     return goal
 
-@pytest_asyncio.fixture(name = "task_user1")
+@pytest_asyncio.fixture(name="task_user1")
 async def example_task_user1(
-    session: models.AsyncSession, user1: models.DBUser, goal_user1: models.Goal
+    session: AsyncSession, user1: models.DBUser, goal_user1: models.Goal
 ) -> models.Task:
     title = "Task 1"
 
     query = await session.exec(
         models.select(models.Task)
-        .where(models.Task.title == title,
-               models.Task.goal_id == goal_user1.goal_id)
+        .where(models.Task.title == title, models.Task.goal_id == goal_user1.goal_id)
         .limit(1)
     )
 
-    task =  query.one_or_none()
+    task = query.one_or_none()
     if task:
         return task
     
     task = models.Task(
-        title = title,
-        description = "Description 1",
-        is_completed = False,
-        task_point= 500,
-        due_date = datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
-        goal_id = goal_user1.goal_id,
+        title=title,
+        description="Description 1",
+        is_completed=False,
+        task_point=500,
+        due_date=datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
+        goal_id=goal_user1.goal_id,
     )
 
-    session.add(task)
+    async with session.begin():  # Use a context manager for the session
+        session.add(task)
     await session.commit()
     await session.refresh(task)
     return task
 
 @pytest_asyncio.fixture(name="example_point_user1")
 async def example_point_user1(
-    session: models.AsyncSession, user1: models.DBUser
+    session: AsyncSession, user1: models.DBUser
 ) -> models.Point:
     query = await session.execute(
         models.select(models.Point).where(models.Point.user_id == user1.id).limit(1)
@@ -178,12 +176,11 @@ async def example_point_user1(
         last_earned_at=datetime.datetime.utcnow()
     )
 
-    session.add(point)
+    async with session.begin():  # Use a context manager for the session
+        session.add(point)
     await session.commit()
     await session.refresh(point)
     return point
-
-
 
 @pytest_asyncio.fixture(name="example_reward1")
 async def example_reward1_fixture(session: models.AsyncSession) -> models.Reward:
@@ -212,9 +209,9 @@ async def example_reward2_fixture(session: models.AsyncSession) -> models.Reward
 @pytest_asyncio.fixture(name="example_reward3")
 async def example_reward3_fixture(session: models.AsyncSession) -> models.Reward:
     reward = models.Reward(
-        title="Another Test reward",
-        description="Another Test reward description",
-        points_required=20000
+        title="Third Test reward",
+        description="Third Test reward description",
+        points_required=300
     )
     session.add(reward)
     await session.commit()

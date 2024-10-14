@@ -39,4 +39,3 @@ async def test_complete_task(
     await session.refresh(task_user1)
     assert task_user1.is_completed, f"Task with ID {task_user1.task_id} should be marked as completed"
 
-

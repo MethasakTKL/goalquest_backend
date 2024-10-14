@@ -108,4 +108,3 @@ async def test_delete_reward2(client: AsyncClient, session: AsyncSession, exampl
     assert response.status_code == 200
     response_data = response.json()
     assert response_data["detail"] == "Reward deleted"
-
