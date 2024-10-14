@@ -217,4 +217,3 @@ async def example_reward3_fixture(session: models.AsyncSession) -> models.Reward
     await session.commit()
     await session.refresh(reward)  
     return reward
-
