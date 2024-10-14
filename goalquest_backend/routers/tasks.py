@@ -60,13 +60,8 @@ async def create_task(
         raise HTTPException(status_code=404, detail="Goal not found")
     if goal.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to create tasks for this goal")
-    
-    # ตรวจสอบ task_type และตั้งค่า repeat_day หรือ task_duration ตามเงื่อนไข
-    if task.task_type == 'FocusTimer':
-        task.repeat_day = None  # ถ้า task_type เป็น FocusTimer, repeat_day ต้องเป็น null
-    elif task.task_type == 'TodoQuest':
-        task.task_duration = None  # ถ้า task_type เป็น TodoQuest, task_duration ต้องเป็น null
-    
+
+
      # ตรวจสอบ task_type และตั้งค่า repeat_day หรือ task_duration ตามเงื่อนไข
     if task.task_type == 'FocusTimer':
         task.repeat_day = None  # ถ้า task_type เป็น FocusTimer, repeat_day ต้องเป็น null
