@@ -56,6 +56,10 @@ async def redeem_reward(
     point_record.total_point -= reward.points_required
     await session.commit()
 
+    reward.is_redeemed = True  # <-- Update the reward status here
+    session.add(reward)
+    await session.commit()
+
     # Record reward redemption
     reward_history = RewardHistory(
         user_id=current_user.id,  
