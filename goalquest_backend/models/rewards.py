@@ -8,6 +8,7 @@ class BaseReward(BaseModel):
     title: str = pydantic.Field(json_schema_extra=dict(example="Reward Title"))
     description: str = pydantic.Field(json_schema_extra=dict(example="Description of the reward")) 
     points_required: int = pydantic.Field(json_schema_extra=dict(example=500))
+    is_redeemed: bool = pydantic.Field(json_schema_extra=dict(example=False))
 
 class Reward(BaseReward, SQLModel, table=True):
     __tablename__ = "rewards"
