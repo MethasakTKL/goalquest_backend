@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    environment {
+        WORKSPACE = pwd()
+        SQLDB_URL = "sqlite+aiosqlite:///./test-data/test-sqlalchemy.db"
+    }
+
+    stages {
+        stage('Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/MethasakTKL/goalquest_backend.git'
+            }
+        }
+
+        stage('Test') {
+            agent {
+                docker {
+                    image 'python:3.12'
+                    reuseNode true
+                    args '-u root'
+                }
+            }
+            steps {
+                // ติดตั้ง Poetry
+                sh "pip install poetry"
+                // ตั้งค่า Poetry ให้สร้าง venv ในโปรเจค
+                sh "poetry config virtualenvs.in-project true"
+                // ติดตั้ง dependencies โดยใช้ Poetry
+                sh "poetry install"
+                
+                // รันการทดสอบ
+                sh "./scripts/run-test"
+            }
+        }
+    }
+}
